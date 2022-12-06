@@ -1,49 +1,55 @@
 package testTracker.gui;
 
+import java.awt.BasicStroke;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
 import java.awt.EventQueue;
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Vector;
+import java.util.concurrent.TimeUnit;
 
 import javax.swing.DefaultComboBoxModel;
-import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JList;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JToggleButton;
 import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumnModel;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.StandardChartTheme;
 import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.renderer.category.BarRenderer;
+import org.jfree.chart.renderer.category.StandardBarPainter;
+import org.jfree.chart.ui.RectangleInsets;
 import org.jfree.data.category.DefaultCategoryDataset;
-import org.jfree.data.general.DefaultPieDataset;
-import org.jfree.data.general.PieDataset;
-
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import java.awt.BorderLayout;
-import javax.swing.JToggleButton;
-import javax.swing.JTable;
-import javax.swing.JScrollPane;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 public class TestExplorer extends JFrame {
 
 	private JPanel contentPane;
 	
-	private ArrayList <Test> tests = new ArrayList <Test>();
+	public static ArrayList <Test> tests = new ArrayList <Test>(); // GLOBAL ALL TESTS (static)
 	private ArrayList <Test> filteredTests = new ArrayList <Test>(); 
 	
 	private JComboBox<String> cmbSubjectFilter; 
@@ -51,6 +57,7 @@ public class TestExplorer extends JFrame {
 	private JPanel pnlChart; 
 	private JToggleButton tglSort;
 	private JTable tblTestList;
+	private JLabel lblWarning;
 
 	/**
 	 * Launch the application.
@@ -86,7 +93,7 @@ public class TestExplorer extends JFrame {
 		contentPane.setLayout(null);
 		
 		JLabel lblTests = new JLabel("Tests");
-		lblTests.setBounds(22, 17, 61, 16);
+		lblTests.setBounds(32, 18, 61, 16);
 		contentPane.add(lblTests);
 		
 		cmbSubjectFilter = new JComboBox();
@@ -106,26 +113,49 @@ public class TestExplorer extends JFrame {
 				drawChart(); 
 			}
 		});
-		cmbSubjectFilter.setBounds(81, 13, 271, 27);
+		cmbSubjectFilter.setBounds(79, 13, 216, 27);
 		contentPane.add(cmbSubjectFilter);
 		
-		DefaultTableModel tblModel = new DefaultTableModel (); 
+		DefaultTableModel tblModel = new DefaultTableModel () {
+			@Override
+		    public boolean isCellEditable(int row, int column) { return false; } // make uneditable
+		}; 
 		
 		Vector<String> columnTitles = new Vector<String> ();
 		columnTitles.add("Subject"); 
 		columnTitles.add("Test"); 
 		columnTitles.add("Score"); 
+		columnTitles.add("Level"); 
 		columnTitles.add("Mock");  
 		tblModel.setColumnIdentifiers(columnTitles);
 		
 		JScrollPane scrollPane = new JScrollPane();
-		scrollPane.setBounds(32, 56, 318, 298);
+		scrollPane.setBounds(32, 52, 318, 250);
 		contentPane.add(scrollPane);
 
 		tblTestList = new JTable(tblModel);
+		tblTestList.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				hideWarning(); 
+			}
+		});
+		tblTestList.setDefaultRenderer(Object.class, new DefaultTableCellRenderer()
+		{
+		    @Override
+		    public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column)
+		    {
+		        final Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+		        if (isSelected)
+		        	c.setBackground(Color.BLUE);
+		        else
+		        	c.setBackground(row % 2 == 0 ? Color.decode("#ebe8e8") : Color.WHITE); 
+		        return c;
+		    }
+		});
+		tblTestList.setSelectionMode(0);
+//		tblTestList.setSelectionForeground(Color.BLUE);
 		scrollPane.setViewportView(tblTestList);
-		
-		
 		
 		JButton btnNewTest = new JButton("New");
 		btnNewTest.addActionListener(new ActionListener() {
@@ -134,7 +164,7 @@ public class TestExplorer extends JFrame {
 				newTest(); 
 			}
 		});
-		btnNewTest.setBounds(412, 248, 84, 29);
+		btnNewTest.setBounds(357, 324, 70, 29);
 		contentPane.add(btnNewTest);
 		
 		JButton btnEditTest = new JButton("Edit");
@@ -144,7 +174,7 @@ public class TestExplorer extends JFrame {
 				editTest(); 
 			}
 		});
-		btnEditTest.setBounds(508, 248, 84, 29);
+		btnEditTest.setBounds(424, 324, 70, 29);
 		contentPane.add(btnEditTest);
 		
 		JButton btnDeleteTest = new JButton("Delete");
@@ -154,7 +184,7 @@ public class TestExplorer extends JFrame {
 				deleteTest(); 
 			}
 		});
-		btnDeleteTest.setBounds(419, 314, 84, 29);
+		btnDeleteTest.setBounds(489, 324, 70, 29);
 		contentPane.add(btnDeleteTest);
 		
 		JButton btnMock = new JButton("Mock");
@@ -164,10 +194,10 @@ public class TestExplorer extends JFrame {
 				toggleMock(); 
 			}
 		});
-		btnMock.setBounds(508, 313, 84, 29);
+		btnMock.setBounds(554, 324, 70, 29);
 		contentPane.add(btnMock);
 		
-		JButton btnShowLog = new JButton("Log");
+		JButton btnShowLog = new JButton("L");
 		btnShowLog.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) 
 			{
@@ -175,11 +205,11 @@ public class TestExplorer extends JFrame {
 					System.out.println(Test.getChangeLog().get(i)); 
 			}
 		});
-		btnShowLog.setBounds(430, 14, 84, 29);
+		btnShowLog.setBounds(489, 13, 35, 29);
 		contentPane.add(btnShowLog);
 		
 		pnlChart = new JPanel();
-		pnlChart.setBounds(364, 53, 228, 168);
+		pnlChart.setBounds(364, 52, 254, 250);
 		contentPane.add(pnlChart);
 		
 		tglSort = new JToggleButton("Sort");
@@ -190,8 +220,33 @@ public class TestExplorer extends JFrame {
 				drawChart(); 
 			}
 		});
-		tglSort.setBounds(375, 12, 51, 29);
+		tglSort.setBounds(303, 13, 51, 29);
 		contentPane.add(tglSort);
+		
+		JButton btnDashboard = new JButton("D");
+		btnDashboard.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				Dashboard dashboard = new Dashboard();
+				dashboard.setVisible(true);
+				setVisible(false); 
+			}
+		});
+		btnDashboard.setBounds(536, 13, 35, 29);
+		contentPane.add(btnDashboard);
+		
+		JButton btnSettings = new JButton("S");
+		btnSettings.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				openSettingsWindow(); 
+			}
+		});
+		btnSettings.setBounds(583, 13, 35, 29);
+		contentPane.add(btnSettings);
+		
+		lblWarning = new JLabel("");
+		lblWarning.setForeground(new Color(255, 52, 48));
+		lblWarning.setBounds(32, 329, 318, 16);
+		contentPane.add(lblWarning);
 		
 //		tests.add(new Test("Test 1", 88, "Test 1 reflection", 100, "Math"));
 //		tests.add(new MockExam("Test 1", 96, "Test 1 reflection", 120, "Math"));
@@ -199,18 +254,25 @@ public class TestExplorer extends JFrame {
 //		tests.add(new Test("Test 3", 92, "Test 3 reflection", 130, "English"));
 //		tests.add(new Test("Test 4", 78, "Test 4 reflection", 80, "Economics"));
 		
-		loadData(); 
+		DataManager.loadData(); 
 		
 		resetSubjectFilter();
 		buildTestList(); 
 		drawChart(); 
+		
+		
+		
+//		for (int i = 0; i < Test.globalSubjects.size(); i++)
+//			Test.globalTargets.add(Integer.valueOf(85)); 
+//		
+//		System.out.println(Test.globalTargets);
 	}
 	
 	private void resetSubjectFilter () 
 	{
 		DefaultComboBoxModel<String> model = new DefaultComboBoxModel<String>();
 		
-		model.addElement("All Tests");
+		model.addElement("All");
 		for (String subject : Test.globalSubjects)  
 		    model.addElement(subject); 
 		
@@ -220,7 +282,7 @@ public class TestExplorer extends JFrame {
 	@SuppressWarnings("unchecked")
 	private void buildTestList ()
 	{
-		if (cmbSubjectFilter.getEditor().getItem().toString().equals("All Tests"))
+		if (cmbSubjectFilter.getEditor().getItem().toString().equals("All"))
 			filteredTests = (ArrayList<Test>)tests.clone(); 
 		else
 		{
@@ -244,7 +306,7 @@ public class TestExplorer extends JFrame {
 				
 				for (int i = 0; i < filteredTests.size() - 1; i++)
 				{
-					if (filteredTests.get(i).testPercentage(true) > filteredTests.get(i + 1).testPercentage(true)) 
+					if (filteredTests.get(i).testPercentage(true) < filteredTests.get(i + 1).testPercentage(true)) 
 					{
 						Test tempTest = filteredTests.get(i); 
 						filteredTests.set(i, filteredTests.get(i + 1)); 
@@ -267,6 +329,7 @@ public class TestExplorer extends JFrame {
 			testData.add(test.getSubject()); 
 			testData.add(test.getTestName());
 			testData.add(test.testPercentage());
+			testData.add(test.getLevel() + ""); 
 			testData.add(test instanceof MockExam ? "Y" : "N"); 
 			
 			testTable.addRow(testData);
@@ -279,6 +342,8 @@ public class TestExplorer extends JFrame {
 		
 		testEditor.setVisible(true);
 		this.setVisible(false);
+		
+		hideWarning();
 	}
 	
 	public void storeTest(Test newTest)
@@ -294,7 +359,7 @@ public class TestExplorer extends JFrame {
 			resetSubjectFilter(); 
 			buildTestList(); 
 			drawChart(); 
-			saveData();
+			DataManager.saveData();
 		}
 		
 		super.setVisible(visible);
@@ -304,26 +369,38 @@ public class TestExplorer extends JFrame {
 	{
 		int selectedIndex = tblTestList.getSelectedRow(); 
 		
-		if (selectedIndex != -1)
+		if (selectedIndex == -1)
 		{
-			Test targetTest = filteredTests.get(selectedIndex); 
-			tests.remove(targetTest); 
-			buildTestList(); 
+			showWarning ("Please select a test");
+			return; 
 		}
 		
-		saveData();
+		Test targetTest = filteredTests.get(selectedIndex); 
+		tests.remove(targetTest); 
+		
+		Test.removeInvalidSubjects();
+		
+		DataManager.saveData();
+		buildTestList(); 
+		
+		hideWarning();
 	}
 	
 	private void editTest()
 	{
 		if (tblTestList.getSelectedRow() == -1)
+		{
+			showWarning ("Please select a test");
 			return; 
+		}
 		
 		Test targetTest = filteredTests.get(tblTestList.getSelectedRow()); 
 		TestEditor editor = new TestEditor(this, targetTest); 
 		
 		editor.setVisible(true);
 		this.setVisible(false);
+		
+		hideWarning();
 	}
 	
 	private void toggleMock() // toggles status of test between mock and normal test
@@ -331,10 +408,15 @@ public class TestExplorer extends JFrame {
 		int selectedIndex = tblTestList.getSelectedRow(); 
 		
 		if (selectedIndex == -1)
+		{
+			showWarning ("Please select a test"); 
 			return; 
+		}
 
 		Test oldTest = (Test) filteredTests.get(selectedIndex);
 		mockToggle (oldTest); 
+		
+		hideWarning();
 	}
 	
 	public void mockToggle(Test oldTest)
@@ -351,73 +433,85 @@ public class TestExplorer extends JFrame {
 		
 		buildTestList();
 		drawChart(); 
-		saveData();
+		DataManager.saveData();
 	}
 	
-	private void saveData()
-	{
-		try
-		{
-			FileOutputStream FOS = new FileOutputStream("TestData.dat"); 
-			ObjectOutputStream OOS = new ObjectOutputStream(FOS); 
-			OOS.writeObject(tests);
-			OOS.writeObject(Test.getGlobalSubjects());
-			OOS.writeObject(Test.getChangeLog()); 
-			OOS.close(); 
-			FOS.close(); 
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace(); 
-		}
-	}
 	
-	private void loadData()
-	{
-		try
-		{
-			FileInputStream FIS = new FileInputStream ("TestData.dat"); 
-			ObjectInputStream OIS = new ObjectInputStream(FIS); 
-			
-			tests = (ArrayList<Test>)OIS.readObject(); 
-			Test.setGlobalSubjects((ArrayList<String>)OIS.readObject());
-			Test.setChangeLog((ArrayList<String>)OIS.readObject());
-			OIS.close();
-			FIS.close();
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace();
-		}
-	}
 	
 	private void drawChart()
 	{
-		System.out.println("DRAW CHART");
-//		DefaultCategoryDataset dataset = new DefaultCategoryDataset();
-		DefaultPieDataset dataset = new DefaultPieDataset(); 
+		DefaultCategoryDataset dataset = new DefaultCategoryDataset();
 		
 		for (Test test : filteredTests)
-			dataset.setValue(test.getTestName(), test.testPercentage(false));  
-//			dataset.addValue(test.testPercentage(false), test.getTestName(), "");
+			dataset.addValue(test.testPercentage(false), test.getTestName(), "");
 		
-//		JFreeChart chart = ChartFactory.createBarChart(
-//			"Test Results: " + cmbSubjectFilter.getSelectedItem().toString(), 
-//			"Tests", 
-//			"Results", 
-//			dataset, 
-//			PlotOrientation.VERTICAL, 
-//			false, 
-//			false, 
-//			false
-//		); 
+		JFreeChart chart = ChartFactory.createBarChart(
+			cmbSubjectFilter.getEditor().getItem().toString(), 
+			"Tests", 
+			"Results", 
+			dataset, 
+			PlotOrientation.VERTICAL, 
+			!cmbSubjectFilter.getEditor().getItem().toString().equals("All"), 
+			false, 
+			false
+		); 
 		
-		JFreeChart chart = ChartFactory.createPieChart("Test Results: " + cmbSubjectFilter.getSelectedItem().toString(), dataset); 
+	    String fontName = "Lucida Sans";
+
+	    StandardChartTheme theme = (StandardChartTheme)org.jfree.chart.StandardChartTheme.createJFreeTheme();
+
+	    theme.setTitlePaint( Color.decode( "#4572a7" ) );
+	    theme.setExtraLargeFont( new Font(fontName,Font.PLAIN, 16) ); //title
+	    theme.setLargeFont( new Font(fontName,Font.BOLD, 15)); //axis-title
+	    theme.setRegularFont( new Font(fontName,Font.PLAIN, 11));
+	    theme.setRangeGridlinePaint( Color.decode("#C0C0C0"));
+	    theme.setPlotBackgroundPaint( Color.white );
+	    theme.setChartBackgroundPaint( Color.white );
+	    theme.setGridBandPaint( Color.red );
+	    theme.setAxisOffset( new RectangleInsets(0,0,0,0) );
+	    theme.setBarPainter(new StandardBarPainter());
+	    theme.setAxisLabelPaint( Color.decode("#666666")  );
+	    theme.apply( chart );
+	    chart.getCategoryPlot().setOutlineVisible( false );
+	    chart.getCategoryPlot().getRangeAxis().setAxisLineVisible( false );
+	    chart.getCategoryPlot().getRangeAxis().setTickMarksVisible( false );
+	    chart.getCategoryPlot().setRangeGridlineStroke( new BasicStroke() );
+	    chart.getCategoryPlot().getRangeAxis().setTickLabelPaint( Color.decode("#666666") );
+	    chart.getCategoryPlot().getDomainAxis().setTickLabelPaint( Color.decode("#666666") );
+	    chart.setTextAntiAlias( true );
+	    chart.setAntiAlias( true );
+	    chart.getCategoryPlot().getRenderer().setSeriesPaint( 0, Color.decode( "#4572a7" ));
+	    BarRenderer rend = (BarRenderer) chart.getCategoryPlot().getRenderer();
+	    rend.setShadowVisible( true );
+	    rend.setShadowXOffset( 2 );
+	    rend.setShadowYOffset( 0 );
+	    rend.setShadowPaint( Color.decode( "#C0C0C0"));
+	    rend.setMaximumBarWidth( 0.1);
+	    chart.setPadding(new RectangleInsets(15,5,5,10)); // top left bottom right
 		
 		pnlChart.removeAll(); 
 		pnlChart.setLayout(new BorderLayout(0, 0));
 		ChartPanel chartPanel = new ChartPanel(chart);
 		pnlChart.add(chartPanel, BorderLayout.CENTER);
-		this.repaint(); 
+		this.repaint();
+		
+		super.setVisible(true); // solves bug where graph disappears on rerender
+	}
+	
+	private void openSettingsWindow()
+	{
+		Settings settings = new Settings(this); 
+		settings.setVisible(true);
+		setVisible(false); 
+	}
+	
+	private void showWarning(String warning)
+	{
+		lblWarning.setText("WARNING: " + warning);
+	}
+	
+	private void hideWarning()
+	{
+		lblWarning.setText("");
 	}
 }

@@ -5,6 +5,7 @@ import java.io.Serializable;
 
 public class Test implements Serializable {
 	public static ArrayList<String> globalSubjects = new ArrayList<String>(); // all subjects
+	public static ArrayList<Integer> globalTargets = new ArrayList<Integer>(); // indexes align with globalSubjects
 
 	public static ArrayList<String> getGlobalSubjects() {
 		return globalSubjects;
@@ -13,14 +14,34 @@ public class Test implements Serializable {
 	public static void setGlobalSubjects(ArrayList<String> globalSubjects) {
 		Test.globalSubjects = globalSubjects;
 	}
+	
+	public static ArrayList< Integer> getGlobalTargets() {
+		return globalTargets;
+	}
+
+	public static void setGlobalTargets(ArrayList<Integer> globalTargets) {
+		Test.globalTargets = globalTargets;
+	}
 
 	private String testName;
 	private int score;
 	private String reflection;
 	private int total;
 	private String subject;
+	private int level; // 7, 6, 5 etc
 
 	private static ArrayList<String> changeLog = new ArrayList<String>();
+	
+	public int getLevel()
+	{
+		return level; 
+	}
+	
+	public void calculateLevel() 
+	{
+		double scorePerc = testPercentage(false);
+		level = Settings.getLevel(scorePerc); 
+	}
 
 	public String getTestName() {
 		return testName;
@@ -83,22 +104,15 @@ public class Test implements Serializable {
 //		System.out.println(myTest.testPercentage()); 
 //	}
 //	
-	public Test(String testName, int score, String reflection, int total, String subject) {
-//		super();
-//		this.testName = testName;
-//		this.score = score;
-//		this.reflection = reflection;
-//		this.total = total;
-//		this.subject = subject;
-
+	public Test(String testName, int score, String reflection, int total, String subject) 
+	{
 		changeLog.add("Created a new test");
 		setTestName(testName);
 		setScore(score);
 		setTotal(total);
 		setSubject(subject);
 		setReflection(reflection);
-
-//		amendGlobalSubjects(); 
+		calculateLevel(); 
 	}
 
 	public String toString() {
@@ -124,7 +138,34 @@ public class Test implements Serializable {
 	private void amendGlobalSubjects() // if subject doesn't already exist in globalSubjects, add it to globalSubjects
 	{
 		if (!globalSubjects.contains(subject))
+		{
 			globalSubjects.add(subject);
+			globalTargets.add(Integer.valueOf(Settings.boundaries[0])); 
+		}
+	}
+	
+	public static void removeInvalidSubjects () // remove subjects that no longer exist // call on test edit or delete
+	{
+		for (int i = 0; i < Test.globalSubjects.size(); i++)
+		{
+			Boolean valid = false; 
+			for (Test test : TestExplorer.tests) // loop through global test list
+			{
+				if (globalSubjects.get(i) == test.getSubject())
+				{
+					valid = true; 
+					break; 
+				}
+			}
+			
+			if (!valid) 
+			{
+				Test.globalSubjects.remove(i); 
+				Test.globalTargets.remove(i); 
+			}
+		}
+		
+		DataManager.saveData();
 	}
 
 	public String getSubject() {

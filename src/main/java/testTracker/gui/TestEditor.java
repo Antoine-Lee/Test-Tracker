@@ -66,7 +66,11 @@ public class TestEditor extends JFrame {
 	/**
 	 * Create the frame.
 	 */
-	public TestEditor() {
+	public TestEditor() 
+	{
+		setResizable(false);
+		setLocationRelativeTo(null);
+		
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 450, 300);
 		contentPane = new JPanel();
@@ -181,30 +185,15 @@ public class TestEditor extends JFrame {
 			targetTest.setTotal((Integer)spnTotal.getValue());
 			targetTest.setReflection(jtaReflection.getText());
 			targetTest.setSubject((String)cmbSubject.getSelectedItem());
+			targetTest.calculateLevel(); 
 			
 			if (chkMock.isSelected() != targetTest instanceof MockExam)
 				parent.mockToggle(targetTest);
 		}
 		
+		Test.removeInvalidSubjects(); 
+		
 		this.setVisible(false);
 		parent.setVisible(true);
 	}
-	
-//	private void saveData()
-//	{
-//		try
-//		{
-//			FileOutputStream FOS = new FileOutputSteam("TestData.dat"); 
-//			ObjectOutputStream OOS = new ObjectOutputStream(FOS); 
-//			OOS.writeObject(tests);
-//			OOS.writeObject(Test.getGlobalSubjects());
-//			OOS.writeObject(Test.getChangeLog()); 
-//			OOS.close(); 
-//			FOS.close(); 
-//		}
-//		catch (Exception e)
-//		{
-//			e.printStackTrace(); 
-//		}
-//	}
 }
