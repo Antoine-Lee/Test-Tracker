@@ -1,7 +1,7 @@
 package testTracker.gui;
 
-import java.util.ArrayList;
 import java.io.Serializable;
+import java.util.ArrayList;
 
 public class Test implements Serializable {
 	public static ArrayList<String> globalSubjects = new ArrayList<String>(); // all subjects
@@ -106,14 +106,6 @@ public class Test implements Serializable {
 		Test.changeLog = changeLog;
 	}
 
-	// public static void main(String[] args)
-//	{
-//		Test myTest = new Test (); 
-//		myTest.score = 7; 
-//		myTest.total = 101; 
-//		System.out.println(myTest.testPercentage()); 
-//	}
-//	
 	public Test(String testName, int score, String reflection, String description, int total, String subject) 
 	{
 		changeLog.add("Created a new test");

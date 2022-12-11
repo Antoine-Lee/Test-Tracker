@@ -23,7 +23,6 @@ public class WarningManager
 	{
 		lblWarning.setForeground(Color.decode(ColourManager.colourRed));
 		lblWarning.setText(warning);
-//		lblWarning.setForeground(Color.decode(ColourManager.colourWarning));
 	}
 	
 	public void hideWarning()

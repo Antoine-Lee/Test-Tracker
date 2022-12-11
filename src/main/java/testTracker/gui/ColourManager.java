@@ -236,64 +236,6 @@ public class ColourManager // manages design
             	BasicArrowButton arrowButton = new BasicArrowButton(BasicArrowButton.SOUTH, Color.decode(colourContainer), null, Color.decode(colourText), null);
                 return arrowButton;
             }
-            
-//            @Override
-//            public void paintCurrentValue(Graphics g,Rectangle bounds,boolean hasFocus) 
-//            {
-//            	Insets padding = new Insets(0, 20, 0, 0); 
-//            	
-//                ListCellRenderer<Object> renderer = comboBox.getRenderer();
-//                Component c;
-//
-//                if ( hasFocus && !isPopupVisible(comboBox) ) {
-//                    c = renderer.getListCellRendererComponent( listBox,
-//                                                               comboBox.getSelectedItem(),
-//                                                               -1,
-//                                                               true,
-//                                                               false );
-//                }
-//                else {
-//                    c = renderer.getListCellRendererComponent( listBox,
-//                                                               comboBox.getSelectedItem(),
-//                                                               -1,
-//                                                               false,
-//                                                               false );
-//                    c.setBackground(UIManager.getColor("ComboBox.background"));
-//                }
-//                c.setFont(comboBox.getFont());
-//                if ( hasFocus && !isPopupVisible(comboBox) ) {
-//                    c.setForeground(listBox.getSelectionForeground());
-//                    c.setBackground(listBox.getSelectionBackground());
-//                }
-//                else {
-//                    if ( comboBox.isEnabled() ) {
-//                        c.setForeground(comboBox.getForeground());
-//                        c.setBackground(comboBox.getBackground());
-//                    }
-//                    else {
-//                        c.setForeground(DefaultLookup.getColor(
-//                                 comboBox, this, "ComboBox.disabledForeground", null));
-//                        c.setBackground(DefaultLookup.getColor(
-//                                 comboBox, this, "ComboBox.disabledBackground", null));
-//                    }
-//                }
-//
-//                // Fix for 4238829: should lay out the JPanel.
-//                boolean shouldValidate = false;
-//                if (c instanceof JPanel)  {
-//                    shouldValidate = true;
-//                }
-//
-//                int x = bounds.x, y = bounds.y, w = bounds.width, h = bounds.height;
-//                if (padding != null) {
-//                    x = bounds.x + padding.left;
-//                    y = bounds.y + padding.top;
-//                    w = bounds.width - (padding.left + padding.right);
-//                    h = bounds.height - (padding.top + padding.bottom);
-//                }
-//
-//                currentValuePane.paintComponent(g,c,comboBox,x,y,w,h,shouldValidate);
-//            }
         });
 
 		comboBox.setRenderer(new ListCellRenderer<String>() {
@@ -315,10 +257,6 @@ public class ColourManager // manages design
 			comboBox.getEditor().getEditorComponent().setBackground(Color.decode(colourButton1));
 			comboBox.getEditor().getEditorComponent().setForeground(Color.decode(colourText));
 			((JComponent) comboBox.getEditor().getEditorComponent()).setBorder(new EmptyBorder(0, 10, 0, 0)); 
-//			comboBox.getEditor().getEditorComponent().setBounds(20, 0, 5, 5);
-//			comboBox.setBorder(new EmptyBorder(0, 20, 0, 0));
-//			comboBox.setBounds(20, 0, comboBox.getWidth(), comboBox.getHeight());
-//			comboBox.getEditor().getEditorComponent().setBounds(new Rectangle(5, 5, 5, 5));
 		}
 		else 
 		{

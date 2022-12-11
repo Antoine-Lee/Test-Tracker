@@ -7,9 +7,4 @@ public class MockExam extends Test
 	{
 		super(testName, score, reflection, description, total, subject);
 	}
-	
-//	public String toString()
-//	{
-//		return "MOCK EXAM: " + super.toString(); 
-//	}
 }

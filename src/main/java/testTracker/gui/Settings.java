@@ -3,23 +3,22 @@ package testTracker.gui;
 import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.Toolkit;
-
-import javax.swing.ImageIcon;
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.border.EmptyBorder;
-import javax.swing.JLabel;
-import javax.swing.JSpinner;
-import javax.swing.event.ChangeListener;
-import javax.swing.event.ChangeEvent;
-import javax.swing.JButton;
-import javax.swing.JColorChooser;
-
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.ActionEvent;
+
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JColorChooser;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JSpinner;
 import javax.swing.SwingConstants;
+import javax.swing.border.EmptyBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 public class Settings extends JFrame {
 
@@ -54,13 +53,6 @@ public class Settings extends JFrame {
 		this(); // call main constructor
 		
 		this.parent = parent; 
-		
-//		DefaultComboBoxModel<String> model = new DefaultComboBoxModel<String>();
-//		
-//		for (String subject : Test.globalSubjects)  
-//		    model.addElement(subject);
-//		
-//		cmbSubject.setModel(model);
 	}
 
 	public Settings() 
@@ -72,12 +64,7 @@ public class Settings extends JFrame {
 		
 		DataManager.loadData(); 
 		
-//		boundaries = new int[] { 85, 75, 65 };
-//		DataManager.saveData();
-		
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-//		setBounds(100, 100, 429, 307);
-		
 		setBounds((int) ((Toolkit.getDefaultToolkit().getScreenSize().getWidth() / 2) - (650 / 2)), 150, 420, 300);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -141,7 +128,6 @@ public class Settings extends JFrame {
 		JLabel lblColours = new JLabel("Colours");
 		lblColours.setBounds(105, 50, 109, 16);
 		contentPane.add(lblColours);
-		
 		
 		
 				
@@ -316,9 +302,7 @@ public class Settings extends JFrame {
 	private void updateBoundary (int boundaryIndex, JSpinner spinner, int lowerLim, int upperLim)
 	{
 		boundaries[boundaryIndex] = (Integer)spinner.getValue();
-		
-//		System.out.println("Restricting boundary " + boundaryIndex + " between " + lowerLim + " and " + upperLim);
-		
+
 		if (boundaries[boundaryIndex] > upperLim)
 		{
 			boundaries[boundaryIndex] = upperLim; 
@@ -342,7 +326,6 @@ public class Settings extends JFrame {
 		{
 			Dashboard dashboard = (Dashboard) parent; 
 			dashboard.updateLevels();
-//			(Dashboard) parent.updateLevels(); 
 		}
 		
 		ColourManager.globalStyling(parent);

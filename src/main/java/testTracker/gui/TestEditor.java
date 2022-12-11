@@ -1,13 +1,13 @@
 package testTracker.gui;
 
+import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.FileOutputStream;
-import java.io.ObjectOutputStream;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.text.DecimalFormat;
-import java.util.List;
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
@@ -16,19 +16,14 @@ import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
-import javax.swing.border.EmptyBorder;
 import javax.swing.SwingConstants;
-import javax.swing.event.ChangeListener;
+import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeEvent;
-import java.awt.Color;
-import java.awt.Component;
-
-import javax.swing.JScrollPane;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
+import javax.swing.event.ChangeListener;
 
 public class TestEditor extends JFrame {
 
@@ -71,7 +66,7 @@ public class TestEditor extends JFrame {
 	
 	public TestEditor (TestExplorer parent)
 	{
-		this(); // call other constructor
+		this(); // call constructor overload
 		this.parent = parent; 
 		
 		DefaultComboBoxModel<String> model = new DefaultComboBoxModel<String>();
@@ -93,7 +88,6 @@ public class TestEditor extends JFrame {
 		setLocationRelativeTo(null);
 		
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-//		setBounds(100, 100, 500, 350);
 		setBounds((int) ((Toolkit.getDefaultToolkit().getScreenSize().getWidth() / 2) - (650 / 2)), 150, 500, 350);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -233,8 +227,6 @@ public class TestEditor extends JFrame {
 		contentPane.add(lblWarning);
 		
 		warningManager = new WarningManager(lblWarning); 
-		
-//		updatePercentage(); 
 		
 		initialising = false; 
 		

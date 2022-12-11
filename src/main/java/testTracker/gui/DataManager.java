@@ -15,7 +15,6 @@ public class DataManager
 			FileOutputStream FOS = new FileOutputStream("TestData.dat"); 
 			ObjectOutputStream OOS = new ObjectOutputStream(FOS); 
 			OOS.writeObject(TestExplorer.tests);
-//			OOS.writeObject(Dashboard.tests);
 			OOS.writeObject(Test.getGlobalSubjects());
 			OOS.writeObject(Test.getGlobalTargets());
 			OOS.writeObject(Test.getChangeLog()); 
@@ -26,11 +25,9 @@ public class DataManager
 			OOS.writeObject(ColourManager.colourText);
 			OOS.writeObject(ColourManager.colourButton1);
 			OOS.writeObject(ColourManager.colourButton2);
+			
 			OOS.close(); 
 			FOS.close(); 
-			
-//			System.out.println("SAVING");
-//			System.out.println(TestExplorer.tests);
 		}
 		catch (Exception e)
 		{
@@ -46,7 +43,6 @@ public class DataManager
 			ObjectInputStream OIS = new ObjectInputStream(FIS); 
 			
 			TestExplorer.tests = (ArrayList<Test>)OIS.readObject(); 
-//			Dashboard.tests = (ArrayList<Test>)OIS.readObject(); 
 			Test.setGlobalSubjects((ArrayList<String>)OIS.readObject());
 			Test.setGlobalTargets((ArrayList<Integer>)OIS.readObject());
 			Test.setChangeLog((ArrayList<String>)OIS.readObject());
@@ -57,11 +53,9 @@ public class DataManager
 			ColourManager.colourText = (String)OIS.readObject();
 			ColourManager.colourButton1 = (String)OIS.readObject();
 			ColourManager.colourButton2 = (String)OIS.readObject();
+			
 			OIS.close();
 			FIS.close();
-			
-//			System.out.println("LOADING");
-//			System.out.println(TestExplorer.tests);
 		}
 		catch (Exception e)
 		{

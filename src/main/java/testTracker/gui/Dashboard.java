@@ -3,7 +3,6 @@ package testTracker.gui;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Container;
 import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.Point;
@@ -13,27 +12,22 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Vector;
 
-import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JColorChooser;
+import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
 import javax.swing.JTable;
-import javax.swing.JToggleButton;
-import javax.swing.border.Border;
+import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
-import javax.swing.colorchooser.AbstractColorChooserPanel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import javax.swing.plaf.ColorUIResource;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumnModel;
@@ -45,12 +39,6 @@ import org.jfree.chart.StandardChartTheme;
 import org.jfree.chart.renderer.category.StandardBarPainter;
 import org.jfree.chart.ui.RectangleInsets;
 import org.jfree.data.general.DefaultPieDataset;
-import javax.swing.SwingConstants;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
 
 public class Dashboard extends JFrame {
 	private class Category {
@@ -63,8 +51,6 @@ public class Dashboard extends JFrame {
 		}
 	}
 
-//	private ArrayList<String> categories = new ArrayList<String>(); // "Overview" + subjects
-//	private double[] categoryScores; 
 	private ArrayList<Category> categories = new ArrayList<Category>();
 	private int categoryIndex = 0; // index of current category
 
@@ -110,15 +96,8 @@ public class Dashboard extends JFrame {
 		
 		setTitle("Analytics"); 
 
-//		try { 
-//		    UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-//		} catch (Exception e) {
-//		    e.printStackTrace();
-//		}
-
 		DataManager.loadData();
 		tests = (ArrayList<Test>) TestExplorer.tests.clone();
-//		System.out.println(tests);
 
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds((int) ((Toolkit.getDefaultToolkit().getScreenSize().getWidth() / 2) - (650 / 2)), 150, 650, 400);
@@ -238,9 +217,6 @@ public class Dashboard extends JFrame {
 		contentPane.add(pnlChart);
 		pnlChart.setLayout(new BorderLayout(0, 0));
 
-//		categories = (ArrayList<String>) Test.globalSubjects.clone();
-//		categories.add(0, "Overview");
-//		
 		categories.add(0, new Category("Overview", getAvgScore("Overview")));
 		for (int i = 0; i < Test.globalSubjects.size(); i++) {
 			String name = Test.globalSubjects.get(i);
@@ -316,15 +292,6 @@ public class Dashboard extends JFrame {
 		lblStatus.setHorizontalAlignment(SwingConstants.CENTER);
 		lblStatus.setBounds(368, 318, 261, 29);
 		contentPane.add(lblStatus);
-
-//		btnSettings = new JButton("S");
-//		btnSettings.addActionListener(new ActionListener() {
-//			public void actionPerformed(ActionEvent e) {
-//				openSettingsWindow();
-//			}
-//		});
-//		btnSettings.setBounds(583, 13, 35, 29);
-//		contentPane.add(btnSettings);
 		
 		JLabel lblSettingsButton = new JLabel("");
 		lblSettingsButton.addMouseListener(new MouseAdapter() {
@@ -347,39 +314,6 @@ public class Dashboard extends JFrame {
 		lblDashboardButton.setBounds(547, 10, 35, 35);
 		ColourManager.styleLabelIcon(lblDashboardButton, new ImageIcon(TestExplorer.class.getResource("/icons/analytics.png")), 25); 
 		contentPane.add(lblDashboardButton);
-//
-//		btnDashboard = new JButton("D");
-//		btnDashboard.addActionListener(new ActionListener() {
-//			public void actionPerformed(ActionEvent e) {
-//				TestExplorer testExplorer = new TestExplorer();
-//				testExplorer.setVisible(true);
-//				setVisible(false);
-//			}
-//		});
-//		btnDashboard.setBounds(536, 13, 35, 29);
-//		contentPane.add(btnDashboard);
-
-//		for (int i = 0; i < Test.globalSubjects.size(); i++)
-//			Test.globalTargets.add(Integer.valueOf(85)); 
-
-//		System.out.println(Test.globalTargets);
-
-//		try { 
-//		    UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-////			LookAndFeel look = new LookAndFeel ()
-////			UIManager.setLookAndFeel(null);
-//		} catch (Exception e) {
-//		    e.printStackTrace();
-//		}
-
-//		UIManager.put("Button.background", Color.RED);
-
-//		Color background = UIManager.getColor("Button.background").darker();
-
-//		
-//		Color background = Color.RED; 
-//		UIManager.put("Button.background", new ColorUIResource(background));
-//		SwingUtilities.updateComponentTreeUI(btnRight); 
 		
 		cmbSortType = new JComboBox();
 		cmbSortType.setModel(new DefaultComboBoxModel(new String[] {"None", "Score ↑", "Score ↓", "A to Z", "Z to A"}));
@@ -396,8 +330,6 @@ public class Dashboard extends JFrame {
 
 		updateUI();
 	}
-
-	
 
 	private void updateUI() // build test list, recalculate avg score, etc
 	{
@@ -486,8 +418,6 @@ public class Dashboard extends JFrame {
 	private double getAvgScore(String categoryName) {
 		double sum = 0;
 		int count = 0;
-
-//		filteredTests = new ArrayList<Test>(); 
 
 		for (Test test : tests) {
 			if (test.getSubject().equals(categoryName) || categoryName.equals("Overview")) {
@@ -584,17 +514,5 @@ public class Dashboard extends JFrame {
 		TestInfo infoWindow = new TestInfo(test);
 		
 		infoWindow.setVisible(true);
-//		this.setVisible(false);
 	}
-	
-//	@Override
-//	public void setVisible(boolean visible)
-//	{
-//		if (visible)
-//		{
-//			ColourManager.globalStyling(this);
-//		}
-//		
-//		super.setVisible(visible);
-//	}
 }

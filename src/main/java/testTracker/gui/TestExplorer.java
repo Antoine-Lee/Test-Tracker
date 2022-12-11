@@ -12,34 +12,24 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Vector;
-import java.util.concurrent.TimeUnit;
 
-import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.ImageIcon;
-import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
-import javax.swing.JTextField;
-import javax.swing.JToggleButton;
-import javax.swing.LookAndFeel;
-import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
+import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
 
 import org.jfree.chart.ChartFactory;
@@ -53,12 +43,6 @@ import org.jfree.chart.renderer.category.BarRenderer;
 import org.jfree.chart.renderer.category.StandardBarPainter;
 import org.jfree.chart.ui.RectangleInsets;
 import org.jfree.data.category.DefaultCategoryDataset;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import javax.swing.SwingConstants;
-import javax.swing.JCheckBox;
-import javax.swing.event.ChangeListener;
-import javax.swing.event.ChangeEvent;
 
 public class TestExplorer extends JFrame {
 
@@ -141,12 +125,7 @@ public class TestExplorer extends JFrame {
 		
 		chkMock = new JCheckBox("");
 		chkMock.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-//				if (!selectedNewTest)
-//					return; 
-				
-				toggleMock();
-			}
+			public void actionPerformed(ActionEvent e) { toggleMock(); }
 		});
 		chkMock.setBounds(330, 326, 20, 20);
 		contentPane.add(chkMock);
@@ -155,7 +134,6 @@ public class TestExplorer extends JFrame {
 		lblMock.setHorizontalAlignment(SwingConstants.RIGHT);
 		lblMock.setBounds(255, 329, 61, 16);
 		contentPane.add(lblMock);
-		
 		
 		
 		
@@ -352,8 +330,6 @@ public class TestExplorer extends JFrame {
 			}
 		}
 		
-//		filteredTests.get(0).getTestName().charAt(0); 
-		
 		int sortType = cmbSortType.getSelectedIndex(); 
 		
 		if (sortType != 0)
@@ -428,13 +404,8 @@ public class TestExplorer extends JFrame {
 			drawChart(); 
 			DataManager.saveData();
 		}
-//		else 
-//			ColourManager.clearIconLabels(); 
 		
 		super.setVisible(visible);
-		
-//		if (visible)
-//			ColourManager.globalStyling(this);
 	}
 	
 	public void deleteTest()
