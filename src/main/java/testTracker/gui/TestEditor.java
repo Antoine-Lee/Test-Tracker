@@ -1,10 +1,13 @@
 package testTracker.gui;
 
 import java.awt.EventQueue;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.FileOutputStream;
 import java.io.ObjectOutputStream;
+import java.text.DecimalFormat;
+import java.util.List;
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
@@ -17,6 +20,15 @@ import javax.swing.JSpinner;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
+import javax.swing.SwingConstants;
+import javax.swing.event.ChangeListener;
+import javax.swing.event.ChangeEvent;
+import java.awt.Color;
+import java.awt.Component;
+
+import javax.swing.JScrollPane;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 
 public class TestEditor extends JFrame {
 
@@ -33,6 +45,13 @@ public class TestEditor extends JFrame {
 	private JSpinner spnScore;
 	private JSpinner spnTotal; 
 	private JTextArea jtaReflection; 
+	private JTextArea jtaDescription;
+	private JLabel lblScorePercValue;
+	
+	private Boolean initialising = true; 
+	
+	private WarningManager warningManager = null; 
+	private String originalName = ""; 
 
 	/**
 	 * Launch the application.
@@ -68,11 +87,14 @@ public class TestEditor extends JFrame {
 	 */
 	public TestEditor() 
 	{
+		initialising = true; 
+		
 		setResizable(false);
 		setLocationRelativeTo(null);
 		
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 450, 300);
+//		setBounds(100, 100, 500, 350);
+		setBounds((int) ((Toolkit.getDefaultToolkit().getScreenSize().getWidth() / 2) - (650 / 2)), 150, 500, 350);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 
@@ -80,49 +102,82 @@ public class TestEditor extends JFrame {
 		contentPane.setLayout(null);
 		
 		JLabel lblTestName = new JLabel("Test Name");
-		lblTestName.setBounds(22, 25, 99, 16);
+		lblTestName.setHorizontalAlignment(SwingConstants.RIGHT);
+		lblTestName.setBounds(7, 53, 99, 16);
 		contentPane.add(lblTestName);
 		
 		JLabel lblSubject = new JLabel("Subject");
-		lblSubject.setBounds(22, 81, 61, 16);
+		lblSubject.setHorizontalAlignment(SwingConstants.RIGHT);
+		lblSubject.setBounds(45, 86, 61, 16);
 		contentPane.add(lblSubject);
 		
 		JLabel lblScore = new JLabel("Marks");
-		lblScore.setBounds(22, 134, 61, 16);
+		lblScore.setHorizontalAlignment(SwingConstants.RIGHT);
+		lblScore.setBounds(45, 142, 61, 16);
 		contentPane.add(lblScore);
 		
-		JLabel lblTotalMarks = new JLabel("Total Marks");
-		lblTotalMarks.setBounds(22, 190, 99, 16);
+		JLabel lblTotalMarks = new JLabel("Total");
+		lblTotalMarks.setHorizontalAlignment(SwingConstants.RIGHT);
+		lblTotalMarks.setBounds(45, 175, 61, 16);
 		contentPane.add(lblTotalMarks);
 		
 		txtTestName = new JTextField();
-		txtTestName.setBounds(21, 53, 130, 26);
+		txtTestName.addKeyListener(new KeyAdapter() {
+			@Override
+			 public void keyPressed(KeyEvent e) {
+				if (txtTestName.getText().length() > ColourManager.charLimit)
+					txtTestName.setText(txtTestName.getText().substring(0, ColourManager.charLimit)); 
+			}
+		});
+		txtTestName.setBounds(118, 48, 95, 27);
 		contentPane.add(txtTestName);
 		txtTestName.setColumns(10);
 		
 		cmbSubject = new JComboBox();
 		cmbSubject.setEditable(true);
-		cmbSubject.setBounds(22, 103, 129, 27);
+		cmbSubject.setBounds(118, 81, 95, 27);
 		contentPane.add(cmbSubject);
 		
-		spnScore = new JSpinner();
-		spnScore.setBounds(22, 152, 130, 26);
-		contentPane.add(spnScore);
-		
 		spnTotal = new JSpinner();
-		spnTotal.setBounds(22, 207, 130, 26);
+		spnTotal.addChangeListener(new ChangeListener() {
+			public void stateChanged(ChangeEvent e) {
+				if (initialising) return; 
+				validateSpinner(spnTotal, 1, 1000); 
+				updatePercentage(); 
+				if ((Integer) spnTotal.getValue() < (Integer)spnScore.getValue())
+					spnScore.setValue((Integer)spnTotal.getValue());
+			}
+		});
+		spnTotal.setBounds(118, 170, 95, 26);
+		spnTotal.setValue(100);
 		contentPane.add(spnTotal);
 		
+		spnScore = new JSpinner();
+		spnScore.addChangeListener(new ChangeListener() {
+			public void stateChanged(ChangeEvent e) {
+				if (initialising) return; 
+				validateSpinner(spnScore, 0, (Integer)spnTotal.getValue()); 
+				updatePercentage(); 
+			}
+		});
+		spnScore.setBounds(118, 137, 95, 26);
+		spnScore.setValue(85);
+		contentPane.add(spnScore);
+		
 		JLabel lblReflection = new JLabel("Reflection");
-		lblReflection.setBounds(170, 25, 99, 16);
+		lblReflection.setBounds(241, 121, 99, 16);
 		contentPane.add(lblReflection);
 		
-		jtaReflection = new JTextArea();
-		jtaReflection.setBounds(176, 58, 251, 165);
-		contentPane.add(jtaReflection);
+		JScrollPane scrollPane_1 = new JScrollPane();
+		scrollPane_1.setBounds(241, 142, 236, 56);
+		contentPane.add(scrollPane_1);
 		
-		chkMock = new JCheckBox("Mock Exam");
-		chkMock.setBounds(22, 243, 128, 23);
+		jtaReflection = new JTextArea();
+		scrollPane_1.setViewportView(jtaReflection);
+		jtaReflection.setLineWrap(true);
+		
+		chkMock = new JCheckBox("");
+		chkMock.setBounds(118, 248, 20, 20);
 		contentPane.add(chkMock);
 		
 		JButton btlCancel = new JButton("Cancel");
@@ -132,7 +187,7 @@ public class TestEditor extends JFrame {
 				cancel(); 
 			}
 		});
-		btlCancel.setBounds(186, 235, 117, 29);
+		btlCancel.setBounds(319, 245, 74, 29);
 		contentPane.add(btlCancel);
 		
 		JButton btnSave = new JButton("Save");
@@ -142,14 +197,55 @@ public class TestEditor extends JFrame {
 				saveTest(); 
 			}
 		});
-		btnSave.setBounds(297, 235, 117, 29);
+		btnSave.setBounds(406, 245, 74, 29);
 		contentPane.add(btnSave);
+		
+		JLabel lblScorePercTitle = new JLabel("Percentage");
+		lblScorePercTitle.setHorizontalAlignment(SwingConstants.RIGHT);
+		lblScorePercTitle.setBounds(7, 211, 99, 16);
+		contentPane.add(lblScorePercTitle);
+		
+		lblScorePercValue = new JLabel("85%");
+		lblScorePercValue.setHorizontalAlignment(SwingConstants.RIGHT);
+		lblScorePercValue.setBounds(127, 211, 76, 16);
+		contentPane.add(lblScorePercValue);
+		
+		JLabel lblDescription = new JLabel("Description");
+		lblDescription.setBounds(241, 29, 99, 16);
+		contentPane.add(lblDescription);
+		
+		JScrollPane scrollPane = new JScrollPane();
+		scrollPane.setBounds(241, 53, 236, 56);
+		contentPane.add(scrollPane);
+		
+		jtaDescription = new JTextArea();
+		scrollPane.setViewportView(jtaDescription);
+		jtaDescription.setLineWrap(true);
+		
+		JLabel lblMock = new JLabel("Mock");
+		lblMock.setHorizontalAlignment(SwingConstants.RIGHT);
+		lblMock.setBounds(45, 252, 61, 16);
+		contentPane.add(lblMock);
+		
+		JLabel lblWarning = new JLabel("");
+		lblWarning.setForeground(new Color(255, 52, 48));
+		lblWarning.setBounds(241, 210, 236, 16);
+		contentPane.add(lblWarning);
+		
+		warningManager = new WarningManager(lblWarning); 
+		
+//		updatePercentage(); 
+		
+		initialising = false; 
+		
+		ColourManager.globalStyling(this); 
 	}
 	
 	public TestEditor(TestExplorer parent, Test targetTest) // constructor overload to receiving an existing Test object for editing
 	{
 		this(parent); 
 		this.targetTest = targetTest; 
+		originalName = targetTest.getTestName(); 
 		if (targetTest != null)
 		{
 			txtTestName.setText(targetTest.getTestName()); 
@@ -157,6 +253,7 @@ public class TestEditor extends JFrame {
 			spnScore.setValue(targetTest.getScore());
 			spnTotal.setValue(targetTest.getTotal());
 			jtaReflection.setText(targetTest.getReflection());
+			jtaDescription.setText(targetTest.getDescription());
 			chkMock.setSelected(targetTest instanceof MockExam);
 		}
 	}
@@ -169,12 +266,48 @@ public class TestEditor extends JFrame {
 	
 	private void saveTest()
 	{
+		String nameInput = txtTestName.getText();
+		
+		if (nameInput.equals(""))
+		{
+			warningManager.showWarning("Please enter test name");
+			warningManager.highlightField(txtTestName);
+			return; 
+		}
+		
+		if (cmbSubject.getSelectedItem().toString().equals(""))
+		{
+			warningManager.showWarning("Please enter a subject");
+			warningManager.highlightField(cmbSubject);
+			return; 
+		}
+		
+		System.out.println(originalName);
+		Boolean validName = true; 
+		for (Test test : TestExplorer.tests)
+		{
+			if (test.getTestName().equals(nameInput) && !nameInput.equals(originalName))
+			{
+				validName = false; 
+				break; 
+			}
+		}
+		
+		warningManager.hideWarning(); 
+		
+		if (!validName)
+		{
+			warningManager.showWarning("Name already in use");
+			warningManager.highlightField(txtTestName);
+			return; 
+		}
+		
 		if (targetTest == null) // target test null for new tests
 		{
 			if (chkMock.isSelected())
-				targetTest = new MockExam(txtTestName.getText(), (Integer)spnScore.getValue(), jtaReflection.getText(), (Integer)spnTotal.getValue(), (String)cmbSubject.getSelectedItem());
+				targetTest = new MockExam(txtTestName.getText(), (Integer)spnScore.getValue(), jtaReflection.getText(), jtaDescription.getText(), (Integer)spnTotal.getValue(), (String)cmbSubject.getSelectedItem());
 			else
-				targetTest = new Test(txtTestName.getText(), (Integer)spnScore.getValue(), jtaReflection.getText(), (Integer)spnTotal.getValue(), (String)cmbSubject.getSelectedItem());
+				targetTest = new Test(txtTestName.getText(), (Integer)spnScore.getValue(), jtaReflection.getText(), jtaDescription.getText(), (Integer)spnTotal.getValue(), (String)cmbSubject.getSelectedItem());
 			
 			parent.storeTest(targetTest);
 		}
@@ -184,6 +317,7 @@ public class TestEditor extends JFrame {
 			targetTest.setScore((Integer)spnScore.getValue());
 			targetTest.setTotal((Integer)spnTotal.getValue());
 			targetTest.setReflection(jtaReflection.getText());
+			targetTest.setDescription(jtaDescription.getText()); 
 			targetTest.setSubject((String)cmbSubject.getSelectedItem());
 			targetTest.calculateLevel(); 
 			
@@ -195,5 +329,24 @@ public class TestEditor extends JFrame {
 		
 		this.setVisible(false);
 		parent.setVisible(true);
+	}
+	
+	private void validateSpinner (JSpinner spinner, int min, int max)
+	{
+		if ((Integer)spinner.getValue() < min)
+			spinner.setValue(min);
+		else if ((Integer)spinner.getValue() > max)
+			spinner.setValue(max);
+	}
+	
+	private void updatePercentage() 
+	{
+		int score = (Integer) spnScore.getValue();
+		int total = (Integer) spnTotal.getValue();
+		
+		double perc = ((double) score / (double)total * 100);
+
+		DecimalFormat df = new DecimalFormat("#.#");
+		lblScorePercValue.setText(df.format(perc) + "%");
 	}
 }

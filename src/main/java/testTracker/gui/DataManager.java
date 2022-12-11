@@ -20,6 +20,12 @@ public class DataManager
 			OOS.writeObject(Test.getGlobalTargets());
 			OOS.writeObject(Test.getChangeLog()); 
 			OOS.writeObject(Settings.boundaries);
+			
+			OOS.writeObject(ColourManager.colourBG);
+			OOS.writeObject(ColourManager.colourContainer);
+			OOS.writeObject(ColourManager.colourText);
+			OOS.writeObject(ColourManager.colourButton1);
+			OOS.writeObject(ColourManager.colourButton2);
 			OOS.close(); 
 			FOS.close(); 
 			
@@ -45,6 +51,12 @@ public class DataManager
 			Test.setGlobalTargets((ArrayList<Integer>)OIS.readObject());
 			Test.setChangeLog((ArrayList<String>)OIS.readObject());
 			Settings.boundaries = (int[]) OIS.readObject(); 
+			
+			ColourManager.colourBG = (String)OIS.readObject();  
+			ColourManager.colourContainer = (String)OIS.readObject();
+			ColourManager.colourText = (String)OIS.readObject();
+			ColourManager.colourButton1 = (String)OIS.readObject();
+			ColourManager.colourButton2 = (String)OIS.readObject();
 			OIS.close();
 			FIS.close();
 			

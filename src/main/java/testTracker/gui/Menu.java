@@ -1,6 +1,11 @@
 package testTracker.gui;
 
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.EventQueue;
+import java.awt.Image;
+import java.awt.Toolkit;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -9,7 +14,12 @@ import javax.swing.JLabel;
 import javax.swing.JButton;
 import javax.swing.ImageIcon;
 import java.awt.event.ActionListener;
+import java.util.List;
 import java.awt.event.ActionEvent;
+import javax.swing.SwingConstants;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.Font;
 
 public class Menu extends JFrame {
 
@@ -38,19 +48,26 @@ public class Menu extends JFrame {
 		setResizable(false);
 		setLocationRelativeTo(null);
 		
+		DataManager.loadData(); 
+		
+		setTitle("Test Tracker"); 
+		
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 650, 400);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
+		
+		setBounds((int) ((Toolkit.getDefaultToolkit().getScreenSize().getWidth() / 2) - (650 / 2)), 150, 650, 400);
 
 		setContentPane(contentPane);
 		contentPane.setLayout(null);
 		
-		JLabel lblTitle = new JLabel("Grade Tracker");
-		lblTitle.setBounds(129, 103, 96, 44);
+		JLabel lblTitle = new JLabel("Test Tracker");
+		lblTitle.setHorizontalAlignment(SwingConstants.CENTER);
+		lblTitle.setFont(new Font("Lucida Grande", Font.PLAIN, 18));
+		lblTitle.setBounds(40, 111, 142, 44);
 		contentPane.add(lblTitle);
 		
-		JButton btnStart = new JButton("Start");
+		JButton btnStart = new JButton("Launch");
 		btnStart.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) 
 			{
@@ -60,12 +77,37 @@ public class Menu extends JFrame {
 				setVisible(false); 
 			}
 		});
-		btnStart.setBounds(108, 199, 117, 29);
+		btnStart.setBounds(68, 193, 90, 25);
 		contentPane.add(btnStart);
 		
-		JLabel lblNewLabel = new JLabel("");
-		lblNewLabel.setIcon(new ImageIcon("/Users/antoinelee/Desktop/png-transparent-paper-test-dante-angle-english-text-thumbnail.png"));
-		lblNewLabel.setBounds(306, 72, 266, 210);
-		contentPane.add(lblNewLabel);
+		JButton btnSettings = new JButton("Settings");
+		btnSettings.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) 
+			{
+				openSettingsWindow(); 
+			}
+		});
+		btnSettings.setBounds(68, 223, 90, 25);
+		contentPane.add(btnSettings);
+		
+		
+		JLabel lblImage = new JLabel("");
+		lblImage.setBounds(214, 49, 400, 267);
+		ImageIcon icon = new ImageIcon(TestExplorer.class.getResource("/icons/menuImg.png")); 
+		Image image = icon.getImage(); 
+    	Image newImg = image.getScaledInstance(400, 267, Image.SCALE_SMOOTH); 
+    	icon = new ImageIcon(newImg); 
+    	lblImage.setHorizontalAlignment(SwingConstants.CENTER);
+    	lblImage.setIcon(icon); 
+		contentPane.add(lblImage);
+		
+		ColourManager.globalStyling(this); 
+	}
+	
+	private void openSettingsWindow()
+	{
+		Settings settings = new Settings(this); 
+		settings.setVisible(true);
+		setVisible(false); 
 	}
 }

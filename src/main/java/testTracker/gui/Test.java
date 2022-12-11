@@ -26,6 +26,7 @@ public class Test implements Serializable {
 	private String testName;
 	private int score;
 	private String reflection;
+	private String description; 
 	private int total;
 	private String subject;
 	private int level; // 7, 6, 5 etc
@@ -70,6 +71,15 @@ public class Test implements Serializable {
 		changeLog.add("Changed reflection <" + this.reflection + "> to <" + reflection + ">");
 		this.reflection = reflection;
 	}
+	
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		changeLog.add("Changed description <" + this.description + "> to <" + description + ">");
+		this.description = description;
+	}
 
 	public int getTotal() {
 		return total;
@@ -104,10 +114,11 @@ public class Test implements Serializable {
 //		System.out.println(myTest.testPercentage()); 
 //	}
 //	
-	public Test(String testName, int score, String reflection, int total, String subject) 
+	public Test(String testName, int score, String reflection, String description, int total, String subject) 
 	{
 		changeLog.add("Created a new test");
 		setTestName(testName);
+		setDescription(description); 
 		setScore(score);
 		setTotal(total);
 		setSubject(subject);

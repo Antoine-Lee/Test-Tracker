@@ -6,6 +6,8 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.EventQueue;
 import java.awt.Font;
+import java.awt.Point;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
@@ -15,10 +17,13 @@ import java.io.FileOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.TimeUnit;
 
+import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
@@ -26,7 +31,11 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.JTextField;
 import javax.swing.JToggleButton;
+import javax.swing.LookAndFeel;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
@@ -37,6 +46,8 @@ import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.StandardChartTheme;
+import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.renderer.category.BarRenderer;
 import org.jfree.chart.renderer.category.StandardBarPainter;
@@ -44,6 +55,10 @@ import org.jfree.chart.ui.RectangleInsets;
 import org.jfree.data.category.DefaultCategoryDataset;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import javax.swing.SwingConstants;
+import javax.swing.JCheckBox;
+import javax.swing.event.ChangeListener;
+import javax.swing.event.ChangeEvent;
 
 public class TestExplorer extends JFrame {
 
@@ -55,9 +70,13 @@ public class TestExplorer extends JFrame {
 	private JComboBox<String> cmbSubjectFilter; 
 
 	private JPanel pnlChart; 
-	private JToggleButton tglSort;
 	private JTable tblTestList;
 	private JLabel lblWarning;
+	
+	private WarningManager warningManager = null; 
+	private JCheckBox chkMock;
+	private JLabel lblMock; 
+	private JComboBox cmbSortType;
 
 	/**
 	 * Launch the application.
@@ -83,20 +102,19 @@ public class TestExplorer extends JFrame {
 	{
 		setResizable(false);
 		setLocationRelativeTo(null);
+		
+		this.setTitle("Test Explorer");
 
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 650, 400);
+		setBounds((int) ((Toolkit.getDefaultToolkit().getScreenSize().getWidth() / 2) - (650 / 2)), 150, 650, 400);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 
 		setContentPane(contentPane);
 		contentPane.setLayout(null);
 		
-		JLabel lblTests = new JLabel("Tests");
-		lblTests.setBounds(32, 18, 61, 16);
-		contentPane.add(lblTests);
-		
 		cmbSubjectFilter = new JComboBox();
+		cmbSubjectFilter.setEditable(true);
 		cmbSubjectFilter.getEditor().getEditorComponent().addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) 
@@ -105,7 +123,6 @@ public class TestExplorer extends JFrame {
 				drawChart(); 
 			}
 		});
-		cmbSubjectFilter.setEditable(true);
 		cmbSubjectFilter.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) 
 			{
@@ -113,8 +130,34 @@ public class TestExplorer extends JFrame {
 				drawChart(); 
 			}
 		});
-		cmbSubjectFilter.setBounds(79, 13, 216, 27);
+		cmbSubjectFilter.setBounds(32, 13, 218, 27);
 		contentPane.add(cmbSubjectFilter);
+		
+		
+		
+		JScrollPane scrollPane = new JScrollPane();
+		scrollPane.setBounds(32, 52, 318, 250);
+		contentPane.add(scrollPane);
+		
+		chkMock = new JCheckBox("");
+		chkMock.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+//				if (!selectedNewTest)
+//					return; 
+				
+				toggleMock();
+			}
+		});
+		chkMock.setBounds(330, 326, 20, 20);
+		contentPane.add(chkMock);
+		
+		lblMock = new JLabel("Mock");
+		lblMock.setHorizontalAlignment(SwingConstants.RIGHT);
+		lblMock.setBounds(255, 329, 61, 16);
+		contentPane.add(lblMock);
+		
+		
+		
 		
 		DefaultTableModel tblModel = new DefaultTableModel () {
 			@Override
@@ -128,16 +171,20 @@ public class TestExplorer extends JFrame {
 		columnTitles.add("Level"); 
 		columnTitles.add("Mock");  
 		tblModel.setColumnIdentifiers(columnTitles);
-		
-		JScrollPane scrollPane = new JScrollPane();
-		scrollPane.setBounds(32, 52, 318, 250);
-		contentPane.add(scrollPane);
 
 		tblTestList = new JTable(tblModel);
 		tblTestList.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				hideWarning(); 
+				warningManager.hideWarning();
+				
+				if (tblTestList.getSelectedRow() == -1)
+					return; 
+				
+				chkMock.setVisible(true);
+				lblMock.setVisible(true);
+				chkMock.setSelected(((Test) filteredTests.get(tblTestList.getSelectedRow()) instanceof MockExam));
+				
 			}
 		});
 		tblTestList.setDefaultRenderer(Object.class, new DefaultTableCellRenderer()
@@ -147,125 +194,134 @@ public class TestExplorer extends JFrame {
 		    {
 		        final Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 		        if (isSelected)
-		        	c.setBackground(Color.BLUE);
+		        	c.setBackground(Color.decode(ColourManager.colourGreen));
 		        else
-		        	c.setBackground(row % 2 == 0 ? Color.decode("#ebe8e8") : Color.WHITE); 
+		        	c.setBackground(row % 2 == 0 ? Color.decode(ColourManager.colourButton1) : Color.decode(ColourManager.colourButton2));
+		        
+	        	setHorizontalAlignment(column != 1 ? JLabel.CENTER : JLabel.LEADING);
+		        
 		        return c;
 		    }
 		});
+		tblTestList.addMouseListener(new MouseAdapter() {
+		    public void mousePressed(MouseEvent mouseEvent) {
+		        JTable table =(JTable) mouseEvent.getSource();
+		        Point point = mouseEvent.getPoint();
+		        int row = table.rowAtPoint(point);
+		        if (mouseEvent.getClickCount() == 2 && table.getSelectedRow() != -1) {
+		        	editTest();
+		        }
+		    }
+		});
 		tblTestList.setSelectionMode(0);
-//		tblTestList.setSelectionForeground(Color.BLUE);
 		scrollPane.setViewportView(tblTestList);
 		
-		JButton btnNewTest = new JButton("New");
-		btnNewTest.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) 
-			{
-				newTest(); 
-			}
-		});
-		btnNewTest.setBounds(357, 324, 70, 29);
-		contentPane.add(btnNewTest);
+
+		TableColumnModel columnModel = tblTestList.getColumnModel();
+		columnModel.getColumn(0).setPreferredWidth(30);
+		columnModel.getColumn(1).setPreferredWidth(60);
+		columnModel.getColumn(2).setPreferredWidth(5);
+		columnModel.getColumn(3).setPreferredWidth(5);
+		columnModel.getColumn(4).setPreferredWidth(5);
+		tblTestList.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
+		((DefaultTableCellRenderer)tblTestList.getTableHeader().getDefaultRenderer()).setHorizontalAlignment(JLabel.CENTER);
 		
-		JButton btnEditTest = new JButton("Edit");
-		btnEditTest.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) 
-			{
-				editTest(); 
-			}
+		JLabel lblNewTestButton = new JLabel("");
+		lblNewTestButton.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) { newTest(); }
 		});
-		btnEditTest.setBounds(424, 324, 70, 29);
-		contentPane.add(btnEditTest);
+		lblNewTestButton.setBounds(32, 314, 35, 35);
+		ColourManager.styleLabelIcon(lblNewTestButton, new ImageIcon(TestExplorer.class.getResource("/icons/new.png")), 20); 
+		contentPane.add(lblNewTestButton);
 		
-		JButton btnDeleteTest = new JButton("Delete");
-		btnDeleteTest.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) 
-			{
-				deleteTest(); 
-			}
+		JLabel lblEditTestButton = new JLabel("");
+		lblEditTestButton.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) { editTest();  }
 		});
-		btnDeleteTest.setBounds(489, 324, 70, 29);
-		contentPane.add(btnDeleteTest);
+		lblEditTestButton.setBounds(79, 314, 35, 35);
+		ColourManager.styleLabelIcon(lblEditTestButton, new ImageIcon(TestExplorer.class.getResource("/icons/pencil.png")), 20); 
+		contentPane.add(lblEditTestButton);
+
+		JLabel lblDeleteTestButton = new JLabel("");
+		lblDeleteTestButton.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) { deleteTest();  }
+		});
+		lblDeleteTestButton.setBounds(126, 314, 35, 35);
+		ColourManager.styleLabelIcon(lblDeleteTestButton, new ImageIcon(TestExplorer.class.getResource("/icons/bin.png")), 20); 
+		contentPane.add(lblDeleteTestButton);
 		
-		JButton btnMock = new JButton("Mock");
-		btnMock.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) 
-			{
-				toggleMock(); 
-			}
-		});
-		btnMock.setBounds(554, 324, 70, 29);
-		contentPane.add(btnMock);
-		
-		JButton btnShowLog = new JButton("L");
-		btnShowLog.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) 
-			{
-				for (int i = 0; i < Test.getChangeLog().size(); i++)
-					System.out.println(Test.getChangeLog().get(i)); 
-			}
-		});
-		btnShowLog.setBounds(489, 13, 35, 29);
-		contentPane.add(btnShowLog);
 		
 		pnlChart = new JPanel();
-		pnlChart.setBounds(364, 52, 254, 250);
+		pnlChart.setBounds(364, 52, 272, 250);
 		contentPane.add(pnlChart);
 		
-		tglSort = new JToggleButton("Sort");
-		tglSort.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) 
-			{
+		JLabel lblDashboardButton = new JLabel("");
+		lblDashboardButton.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) { 
+				Dashboard dashboard = new Dashboard();
+				dashboard.setVisible(true);
+				setVisible(false);  
+			}
+		});
+		lblDashboardButton.setBounds(547, 10, 35, 35);
+		ColourManager.styleLabelIcon(lblDashboardButton, new ImageIcon(TestExplorer.class.getResource("/icons/analytics.png")), 25); 
+		contentPane.add(lblDashboardButton);
+		
+	
+		
+		JLabel lblShowLog = new JLabel("");
+		lblShowLog.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) { 
+				openChangeLog();
+			}
+		});
+		lblShowLog.setBounds(505, 10, 35, 35);
+		ColourManager.styleLabelIcon(lblShowLog, new ImageIcon(TestExplorer.class.getResource("/icons/log.png")), 30); 
+		contentPane.add(lblShowLog);
+		
+		
+		
+		
+		JLabel lblSettingsButton = new JLabel("");
+		lblSettingsButton.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) { openSettingsWindow(); }
+		});
+		lblSettingsButton.setBounds(590, 10, 35, 35);
+		ColourManager.styleLabelIcon(lblSettingsButton, new ImageIcon(TestExplorer.class.getResource("/icons/settings.png")), 20); 
+		contentPane.add(lblSettingsButton);
+		
+		lblWarning = new JLabel("");
+		lblWarning.setHorizontalAlignment(SwingConstants.CENTER);
+		lblWarning.setForeground(new Color(255, 52, 48));
+		lblWarning.setBounds(383, 328, 235, 16);
+		contentPane.add(lblWarning);
+		
+		warningManager = new WarningManager(lblWarning); 
+		
+		cmbSortType = new JComboBox();
+		cmbSortType.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
 				buildTestList(); 
 				drawChart(); 
 			}
 		});
-		tglSort.setBounds(303, 13, 51, 29);
-		contentPane.add(tglSort);
+		cmbSortType.setModel(new DefaultComboBoxModel(new String[] {"None", "Score ↑", "Score ↓", "A to Z", "Z to A"}));
+		cmbSortType.setBounds(262, 14, 88, 27);
+		contentPane.add(cmbSortType);
 		
-		JButton btnDashboard = new JButton("D");
-		btnDashboard.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				Dashboard dashboard = new Dashboard();
-				dashboard.setVisible(true);
-				setVisible(false); 
-			}
-		});
-		btnDashboard.setBounds(536, 13, 35, 29);
-		contentPane.add(btnDashboard);
-		
-		JButton btnSettings = new JButton("S");
-		btnSettings.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				openSettingsWindow(); 
-			}
-		});
-		btnSettings.setBounds(583, 13, 35, 29);
-		contentPane.add(btnSettings);
-		
-		lblWarning = new JLabel("");
-		lblWarning.setForeground(new Color(255, 52, 48));
-		lblWarning.setBounds(32, 329, 318, 16);
-		contentPane.add(lblWarning);
-		
-//		tests.add(new Test("Test 1", 88, "Test 1 reflection", 100, "Math"));
-//		tests.add(new MockExam("Test 1", 96, "Test 1 reflection", 120, "Math"));
-//		tests.add(new Test("Test 2", 81, "Test 2 reflection", 120, "Computer Science"));
-//		tests.add(new Test("Test 3", 92, "Test 3 reflection", 130, "English"));
-//		tests.add(new Test("Test 4", 78, "Test 4 reflection", 80, "Economics"));
+		ColourManager.globalStyling(this); 
 		
 		DataManager.loadData(); 
 		
 		resetSubjectFilter();
 		buildTestList(); 
 		drawChart(); 
-		
-		
-		
-//		for (int i = 0; i < Test.globalSubjects.size(); i++)
-//			Test.globalTargets.add(Integer.valueOf(85)); 
-//		
-//		System.out.println(Test.globalTargets);
 	}
 	
 	private void resetSubjectFilter () 
@@ -296,7 +352,11 @@ public class TestExplorer extends JFrame {
 			}
 		}
 		
-		if (tglSort.isSelected())
+//		filteredTests.get(0).getTestName().charAt(0); 
+		
+		int sortType = cmbSortType.getSelectedIndex(); 
+		
+		if (sortType != 0)
 		{
 			boolean searching = true;
 			
@@ -306,7 +366,10 @@ public class TestExplorer extends JFrame {
 				
 				for (int i = 0; i < filteredTests.size() - 1; i++)
 				{
-					if (filteredTests.get(i).testPercentage(true) < filteredTests.get(i + 1).testPercentage(true)) 
+					if ((filteredTests.get(i).testPercentage(true) < filteredTests.get(i + 1).testPercentage(true) && sortType == 1) || 
+							(filteredTests.get(i).testPercentage(true) > filteredTests.get(i + 1).testPercentage(true) && sortType == 2) || 
+							(filteredTests.get(i).getTestName().charAt(0) > filteredTests.get(i + 1).getTestName().charAt(0) && sortType == 3) || 
+							(filteredTests.get(i).getTestName().charAt(0) < filteredTests.get(i + 1).getTestName().charAt(0) && sortType == 4)) 
 					{
 						Test tempTest = filteredTests.get(i); 
 						filteredTests.set(i, filteredTests.get(i + 1)); 
@@ -328,12 +391,16 @@ public class TestExplorer extends JFrame {
 			
 			testData.add(test.getSubject()); 
 			testData.add(test.getTestName());
-			testData.add(test.testPercentage());
+			testData.add(test.testPercentage() + "%");
 			testData.add(test.getLevel() + ""); 
 			testData.add(test instanceof MockExam ? "Y" : "N"); 
 			
 			testTable.addRow(testData);
 		}
+		
+		lblMock.setVisible(tblTestList.getSelectedRow() != -1);
+		chkMock.setVisible(tblTestList.getSelectedRow() != -1);
+		
 	}
 	
 	private void newTest () // create new test entry
@@ -343,7 +410,7 @@ public class TestExplorer extends JFrame {
 		testEditor.setVisible(true);
 		this.setVisible(false);
 		
-		hideWarning();
+		warningManager.hideWarning();
 	}
 	
 	public void storeTest(Test newTest)
@@ -361,8 +428,13 @@ public class TestExplorer extends JFrame {
 			drawChart(); 
 			DataManager.saveData();
 		}
+//		else 
+//			ColourManager.clearIconLabels(); 
 		
 		super.setVisible(visible);
+		
+//		if (visible)
+//			ColourManager.globalStyling(this);
 	}
 	
 	public void deleteTest()
@@ -371,7 +443,7 @@ public class TestExplorer extends JFrame {
 		
 		if (selectedIndex == -1)
 		{
-			showWarning ("Please select a test");
+			warningManager.showWarning ("Please select a test");
 			return; 
 		}
 		
@@ -383,14 +455,14 @@ public class TestExplorer extends JFrame {
 		DataManager.saveData();
 		buildTestList(); 
 		
-		hideWarning();
+		warningManager.hideWarning();
 	}
 	
 	private void editTest()
 	{
 		if (tblTestList.getSelectedRow() == -1)
 		{
-			showWarning ("Please select a test");
+			warningManager.showWarning ("Please select a test");
 			return; 
 		}
 		
@@ -400,7 +472,7 @@ public class TestExplorer extends JFrame {
 		editor.setVisible(true);
 		this.setVisible(false);
 		
-		hideWarning();
+		warningManager.hideWarning();
 	}
 	
 	private void toggleMock() // toggles status of test between mock and normal test
@@ -409,14 +481,14 @@ public class TestExplorer extends JFrame {
 		
 		if (selectedIndex == -1)
 		{
-			showWarning ("Please select a test"); 
+			warningManager.showWarning ("Please select a test"); 
 			return; 
 		}
 
 		Test oldTest = (Test) filteredTests.get(selectedIndex);
 		mockToggle (oldTest); 
 		
-		hideWarning();
+		warningManager.hideWarning();
 	}
 	
 	public void mockToggle(Test oldTest)
@@ -424,9 +496,9 @@ public class TestExplorer extends JFrame {
 		Test newTest; 
 		
 		if (oldTest instanceof MockExam)
-			newTest = new Test(oldTest.getTestName(), oldTest.getScore(), oldTest.getReflection(), oldTest.getTotal(), oldTest.getSubject());
+			newTest = new Test(oldTest.getTestName(), oldTest.getScore(), oldTest.getReflection(), oldTest.getDescription(), oldTest.getTotal(), oldTest.getSubject());
 		else
-			newTest = new MockExam(oldTest.getTestName(), oldTest.getScore(), oldTest.getReflection(), oldTest.getTotal(), oldTest.getSubject());
+			newTest = new MockExam(oldTest.getTestName(), oldTest.getScore(), oldTest.getReflection(), oldTest.getDescription(), oldTest.getTotal(), oldTest.getSubject());
 		
 		tests.add(tests.indexOf(oldTest), newTest); 
 		tests.remove(oldTest); 
@@ -460,35 +532,45 @@ public class TestExplorer extends JFrame {
 
 	    StandardChartTheme theme = (StandardChartTheme)org.jfree.chart.StandardChartTheme.createJFreeTheme();
 
-	    theme.setTitlePaint( Color.decode( "#4572a7" ) );
+	    theme.setTitlePaint(Color.decode(ColourManager.colourText));
 	    theme.setExtraLargeFont( new Font(fontName,Font.PLAIN, 16) ); //title
 	    theme.setLargeFont( new Font(fontName,Font.BOLD, 15)); //axis-title
 	    theme.setRegularFont( new Font(fontName,Font.PLAIN, 11));
-	    theme.setRangeGridlinePaint( Color.decode("#C0C0C0"));
-	    theme.setPlotBackgroundPaint( Color.white );
-	    theme.setChartBackgroundPaint( Color.white );
-	    theme.setGridBandPaint( Color.red );
+	    theme.setRangeGridlinePaint(Color.decode(ColourManager.colourLines));
+	    theme.setPlotBackgroundPaint(Color.decode(ColourManager.colourBG));
+	    theme.setChartBackgroundPaint(Color.decode(ColourManager.colourBG));
 	    theme.setAxisOffset( new RectangleInsets(0,0,0,0) );
 	    theme.setBarPainter(new StandardBarPainter());
-	    theme.setAxisLabelPaint( Color.decode("#666666")  );
+	    theme.setAxisLabelPaint(Color.decode(ColourManager.colourText));
 	    theme.apply( chart );
 	    chart.getCategoryPlot().setOutlineVisible( false );
 	    chart.getCategoryPlot().getRangeAxis().setAxisLineVisible( false );
 	    chart.getCategoryPlot().getRangeAxis().setTickMarksVisible( false );
 	    chart.getCategoryPlot().setRangeGridlineStroke( new BasicStroke() );
-	    chart.getCategoryPlot().getRangeAxis().setTickLabelPaint( Color.decode("#666666") );
-	    chart.getCategoryPlot().getDomainAxis().setTickLabelPaint( Color.decode("#666666") );
+	    chart.getCategoryPlot().getRangeAxis().setTickLabelPaint(Color.decode(ColourManager.colourText));
+	    chart.getCategoryPlot().getDomainAxis().setTickLabelPaint(Color.decode(ColourManager.colourText));
 	    chart.setTextAntiAlias( true );
 	    chart.setAntiAlias( true );
-	    chart.getCategoryPlot().getRenderer().setSeriesPaint( 0, Color.decode( "#4572a7" ));
+	    chart.getCategoryPlot().getRenderer().setSeriesPaint( 0, Color.decode(ColourManager.colourLines));
 	    BarRenderer rend = (BarRenderer) chart.getCategoryPlot().getRenderer();
 	    rend.setShadowVisible( true );
 	    rend.setShadowXOffset( 2 );
 	    rend.setShadowYOffset( 0 );
-	    rend.setShadowPaint( Color.decode( "#C0C0C0"));
+	    rend.setShadowVisible(false);
 	    rend.setMaximumBarWidth( 0.1);
 	    chart.setPadding(new RectangleInsets(15,5,5,10)); // top left bottom right
-		
+	    
+	    NumberAxis rangeAxis = (NumberAxis) ((CategoryPlot) chart.getPlot()).getRangeAxis();
+	    rangeAxis.setRange(0, 100);
+	    
+	    if (!cmbSubjectFilter.getEditor().getItem().toString().equals("All"))
+	    {
+	    	chart.getLegend().setBackgroundPaint(Color.decode(ColourManager.colourBG));
+	    	chart.getLegend().setItemPaint(Color.decode(ColourManager.colourText));
+	    }
+	    
+	    rend.setSeriesPaint(0, Color.decode("#7dab8d"));
+	    
 		pnlChart.removeAll(); 
 		pnlChart.setLayout(new BorderLayout(0, 0));
 		ChartPanel chartPanel = new ChartPanel(chart);
@@ -505,13 +587,10 @@ public class TestExplorer extends JFrame {
 		setVisible(false); 
 	}
 	
-	private void showWarning(String warning)
+	private void openChangeLog() 
 	{
-		lblWarning.setText("WARNING: " + warning);
-	}
-	
-	private void hideWarning()
-	{
-		lblWarning.setText("");
+		ChangeLog changeLog = new ChangeLog(this); 
+		changeLog.setVisible(true);
+		setVisible(false);
 	}
 }
